@@ -81,6 +81,9 @@ public class NetworkTopology {
 		// creates the delay matrix
 		delayMatrix = new DelayMatrix_Float(graph, false);
 
+//		Print out delay matrix
+		Log.printLine(delayMatrix.toString());
+
 		// creates the bw matrix
 		bwMatrix = createBwMatrix(graph, false);
 

@@ -31,14 +31,15 @@ import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicySimple;
 import org.cloudbus.cloudsim.VmSchedulerSpaceShared;
 import org.cloudbus.cloudsim.core.CloudSim;
+import org.cloudbus.cloudsim.network.datacenter.NetworkVmAllocationPolicy;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 
 /**
  * A simple example showing how to create
- * two datacenters with one host each and
- * run cloudlets of two users with network
+ * three datacenters with one host each and
+ * run cloudlets of three users with network
  * topology on them.
  */
 public class NetworkExample3 {
@@ -46,10 +47,12 @@ public class NetworkExample3 {
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList1;
 	private static List<Cloudlet> cloudletList2;
+	private static List<Cloudlet> cloudletList3;
 
 	/** The vmlist. */
 	private static List<Vm> vmlist1;
 	private static List<Vm> vmlist2;
+	private static List<Vm> vmlist3;
 
 	/**
 	 * Creates main() to run this example
@@ -61,7 +64,7 @@ public class NetworkExample3 {
 		try {
 			// First step: Initialize the CloudSim package. It should be called
 			// before creating any entities.
-			int num_user = 2;   // number of cloud users
+			int num_user = 3;   // number of cloud users
 			Calendar calendar = Calendar.getInstance();
 			boolean trace_flag = false;  // mean trace events
 
@@ -72,6 +75,7 @@ public class NetworkExample3 {
 			//Datacenters are the resource providers in CloudSim. We need at list one of them to run a CloudSim simulation
 			Datacenter datacenter0 = createDatacenter("Datacenter_0");
 			Datacenter datacenter1 = createDatacenter("Datacenter_1");
+			Datacenter datacenter2 = createDatacenter("Datacenter_2");
 
 			//Third step: Create Brokers
 			DatacenterBroker broker1 = createBroker(1);
@@ -80,9 +84,13 @@ public class NetworkExample3 {
 			DatacenterBroker broker2 = createBroker(2);
 			int brokerId2 = broker2.getId();
 
+			DatacenterBroker broker3 = createBroker(3);
+			int brokerId3 = broker3.getId();
+
 			//Fourth step: Create one virtual machine for each broker/user
 			vmlist1 = new ArrayList<Vm>();
 			vmlist2 = new ArrayList<Vm>();
+			vmlist3 = new ArrayList<Vm>();
 
 			//VM description
 			int vmid = 0;
@@ -93,23 +101,29 @@ public class NetworkExample3 {
 			int pesNumber = 1; //number of cpus
 			String vmm = "Xen"; //VMM name
 
-			//create two VMs: the first one belongs to user1
+			//create three VMs: the first one belongs to user1
 			Vm vm1 = new Vm(vmid, brokerId1, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
 
 			//the second VM: this one belongs to user2
 			Vm vm2 = new Vm(vmid, brokerId2, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
 
+			//the third VM: this one belongs to user3
+			Vm vm3 = new Vm(vmid, brokerId3, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());
+
 			//add the VMs to the vmlists
 			vmlist1.add(vm1);
 			vmlist2.add(vm2);
+			vmlist3.add(vm3);
 
 			//submit vm list to the broker
 			broker1.submitVmList(vmlist1);
 			broker2.submitVmList(vmlist2);
+			broker3.submitVmList(vmlist3);
 
-			//Fifth step: Create two Cloudlets
+			//Fifth step: Create three Cloudlets
 			cloudletList1 = new ArrayList<Cloudlet>();
 			cloudletList2 = new ArrayList<Cloudlet>();
+			cloudletList3 = new ArrayList<Cloudlet>();
 
 			//Cloudlet properties
 			int id = 0;
@@ -124,13 +138,18 @@ public class NetworkExample3 {
 			Cloudlet cloudlet2 = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 			cloudlet2.setUserId(brokerId2);
 
+			Cloudlet cloudlet3 = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
+			cloudlet3.setUserId(brokerId3);
+
 			//add the cloudlets to the lists: each cloudlet belongs to one user
 			cloudletList1.add(cloudlet1);
 			cloudletList2.add(cloudlet2);
+			cloudletList3.add(cloudlet3);
 
 			//submit cloudlet list to the brokers
 			broker1.submitCloudletList(cloudletList1);
 			broker2.submitCloudletList(cloudletList2);
+			broker3.submitCloudletList(cloudletList3);
 
 
 			//Sixth step: configure network
@@ -146,13 +165,21 @@ public class NetworkExample3 {
 			briteNode=2;
 			NetworkTopology.mapNode(datacenter1.getId(),briteNode);
 
+			//Datacenter2 will correspond to BRITE node 7
+			briteNode=7;
+			NetworkTopology.mapNode(datacenter2.getId(),briteNode);
+
 			//Broker1 will correspond to BRITE node 3
 			briteNode=3;
 			NetworkTopology.mapNode(broker1.getId(),briteNode);
 
-			//Broker2 will correspond to BRITE node 4
-			briteNode=4;
+			//Broker2 will correspond to BRITE node 5
+			briteNode=5;
 			NetworkTopology.mapNode(broker2.getId(),briteNode);
+
+			//Broker3 will correspond to BRITE node 9
+			briteNode=9;
+			NetworkTopology.mapNode(broker3.getId(),briteNode);
 
 			// Sixth step: Starts the simulation
 			CloudSim.startSimulation();
@@ -160,6 +187,7 @@ public class NetworkExample3 {
 			// Final step: Print results when simulation is over
 			List<Cloudlet> newList1 = broker1.getCloudletReceivedList();
 			List<Cloudlet> newList2 = broker2.getCloudletReceivedList();
+			List<Cloudlet> newList3 = broker3.getCloudletReceivedList();
 
 			CloudSim.stopSimulation();
 
@@ -169,6 +197,10 @@ public class NetworkExample3 {
 			Log.print("=============> User "+brokerId2+"    ");
 			printCloudletList(newList2);
 
+			Log.print("=============> User "+brokerId3+"    ");
+			printCloudletList(newList3);
+
+//			todo - should i rename this for the assignment? review before submitting
 			Log.printLine("NetworkExample3 finished!");
 		}
 		catch (Exception e) {
@@ -236,6 +268,7 @@ public class NetworkExample3 {
 		Datacenter datacenter = null;
 		try {
 			datacenter = new Datacenter(name, characteristics, new VmAllocationPolicySimple(hostList), storageList, 0);
+//			datacenter = new Datacenter(name, characteristics, new NetworkVmAllocationPolicy(hostList), storageList, 0);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

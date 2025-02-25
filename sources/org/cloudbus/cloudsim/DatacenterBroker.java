@@ -8,11 +8,7 @@
 
 package org.cloudbus.cloudsim;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.CloudSimTags;
@@ -183,9 +179,19 @@ public class DatacenterBroker extends SimEntity {
 		DatacenterCharacteristics characteristics = (DatacenterCharacteristics) ev.getData();
 		getDatacenterCharacteristicsList().put(characteristics.getId(), characteristics);
 
-		if (getDatacenterCharacteristicsList().size() == getDatacenterIdsList().size()) {
+//		Sort the data centers by increasing delay
+		final Integer brokerId = this.getId();
+		List<Integer> datacenterIdList = getDatacenterIdsList();
+		Collections.sort(datacenterIdList, new Comparator<Integer>() {
+			@Override
+			public int compare(Integer dcId1, Integer dcId2) {
+				return Double.compare(NetworkTopology.getDelay(brokerId, dcId1), NetworkTopology.getDelay(brokerId, dcId2));
+			}
+		});
+
+		if (getDatacenterCharacteristicsList().size() == datacenterIdList.size()) {
 			setDatacenterRequestedIdsList(new ArrayList<Integer>());
-			createVmsInDatacenter(getDatacenterIdsList().get(0));
+			createVmsInDatacenter(datacenterIdList.get(0));
 		}
 	}
 
